@@ -1,9 +1,15 @@
 const axios = require('axios').default;
+const mustache = require('mustache');
 
 module.exports = RED => {
   const stripEndingSlashes = url => {
     const matches = url.match(/^(.*?)\/\s*$/);
     return matches ? matches[1] : url;
+  };
+
+  const formatStringForMustache = (str, msg) => {
+    const isTemplatedStr = (str || '').indexOf('{{') != -1;
+    return isTemplatedStr ? mustache.render(str, msg) : str;
   };
 
   const sendGotifyMessage = async ({ node, url, appkey, title, message }) => {
@@ -55,8 +61,8 @@ module.exports = RED => {
           node,
           url: server.url,
           appkey: server.credentials.appkey,
-          title,
-          message,
+          title: formatStringForMustache(title, msg),
+          message: formatStringForMustache(message, msg),
         });
 
         node.status({});
